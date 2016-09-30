@@ -1,0 +1,44 @@
+<Query>
+  <DeleteAll>
+    <TempSensorModel>
+      <TempSensorID ne=""/>
+    </TempSensorModel>
+  </DeleteAll>
+  <Save format="version,current">
+    <TempSensorModel>
+      <SensorName>
+        TempSensor
+      </SensorName>
+      <Simulated>
+        true
+      </Simulated>
+      <ConnParams>
+        <Peripheral>
+          serial
+        </Peripheral>
+        <Baudrate>
+          9600
+        </Baudrate>
+        <InterfacePort>
+          /dev/ttyACM0
+        </InterfacePort>
+        <Interface>
+          serial
+        </Interface>
+        <Format>
+          ascii
+        </Format>
+        <Operation>
+          receive
+        </Operation>
+        <UniqueId>
+          76513
+        </UniqueId>
+        <Payload>
+          $Null()
+        </Payload>
+      </ConnParams>
+      <TempData>$Null()</TempData>
+    </TempSensorModel>
+  </Save>
+</Query>

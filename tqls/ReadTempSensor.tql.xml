@@ -1,0 +1,7 @@
+<Query>
+  <Find>
+    <TempSensorModel>
+      <TempSensorID ne=""/>
+    </TempSensorModel>
+  </Find>
+</Query>

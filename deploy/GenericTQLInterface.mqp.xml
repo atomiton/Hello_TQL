@@ -1,0 +1,364 @@
+<NewPackage>
+  <RuntimeParams>
+    <DbmLocation>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/models/</DbmLocation>
+    <ThingFacetLocation>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/facets/</ThingFacetLocation>
+    <MacroLocation>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/macros/</MacroLocation>
+    <SpacesLocation>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/spaces/</SpacesLocation>
+    <TypesLocation>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/types/</TypesLocation>
+    <DataFacetLocation>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/facets/</DataFacetLocation>
+    <WSFacetIDName>TQLKYAURM73AAAL7KABJRH4WOVYWS</WSFacetIDName>
+    <FacetIDName>TQLKYAURM73AAAL7KABJRH4WOVY</FacetIDName>
+    <TQLCacheName>KYAURM73AAAL7KABJRH4WOVY</TQLCacheName>
+    <TopicFacetIDName>TQLGenericTopic</TopicFacetIDName>
+    <MacroFacetID>TQLKYAURM73AAAL7KABJRH4WOVY-MacroFacet</MacroFacetID>
+    <SequenceFacetIDName>TQLSequenceFacet</SequenceFacetIDName>
+    <WdlFacetIDName>TQLWdlFacet</WdlFacetIDName>
+    <TQLOutputFormat>XML</TQLOutputFormat>
+    <ProjectSettings_EnforceKey>false</ProjectSettings_EnforceKey>
+    <ProjectSettings_ProjectKey>KYAURNASAAAL7KABJRUU4C3J</ProjectSettings_ProjectKey>
+  </RuntimeParams>
+  <RESTHeaders>
+    <Headers>
+      <Connection>close</Connection>
+      <Access-Control-Allow-Origin>*</Access-Control-Allow-Origin>
+      <Access-Control-Allow-Methods>GET, POST, PUT
+      </Access-Control-Allow-Methods>
+      <Access-Control-Allow-Headers>Content-Type,
+        X-Atomiton-Studio-Key,X-Atomiton-Session-Key
+      </Access-Control-Allow-Headers>
+    </Headers>
+  </RESTHeaders>
+  <GenerateMessage>
+    <Message>
+      <Value>
+        <Include>[:@RT:]GenMsgArgs</Include>
+      </Value>
+    </Message>
+  </GenerateMessage>
+
+  <NewFacetInstance fid="[:RuntimeParams.MacroFacetID:]" name="ProjectMacros" type="SffTcpFacet">
+    <OnActivate>
+      <Macro><Include>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/macros/executequery.mc.xml</Include></Macro><Macro><Include>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/macros/updatesensor.mc.xml</Include></Macro>
+    </OnActivate>
+  </NewFacetInstance>
+
+  <NewFacetInstance fid="[:RuntimeParams.WdlFacetIDName:]" Name="wdl" Type="SffWdlFacet">
+    <OnActivate>
+      <ImportFacet>[:RuntimeParams.MacroFacetID:]</ImportFacet>
+    </OnActivate>
+    <OnOpen ModifyPipeline="HttpServerExtensionArgs"/>
+  </NewFacetInstance>
+
+  <NewFacetInstance fid="[:RuntimeParams.TopicFacetIDName:]" name="TQLGenericTopic" type="SffTopicFacet">
+    <OnActivate>
+      <DoRequest>
+        <Process>
+          <Message type="xml">
+            <Value>
+              <Subscribe sid="GenericTopicID" topic="TQL.*">
+                <Action>
+                  <Log>CacheUpdate -> [:[:@Log:]$Request:]</Log>
+                </Action>
+              </Subscribe>
+            </Value>
+          </Message>
+        </Process>
+      </DoRequest>
+    </OnActivate>
+    <OnOpen ModifyPipeline="HttpServerExtensionArgs"/>
+  </NewFacetInstance>
+
+  <NewFacetInstance fid="[:RuntimeParams.SequenceFacetIDName:]" name="seq" type="SffSequenceFacet">
+    <OnActivate>
+    </OnActivate>
+    <OnOpen ModifyPipeline="HttpServerExtensionArgs"/>
+  </NewFacetInstance>
+
+  <NewFacetInstance fid="[:RuntimeParams.WSFacetIDName:]" Name="TQL" Type="SffTqlFacet">
+    <OnActivate>
+      <NewFacetInstance name="tqlwfws" type="SffWdlFacet"/>
+      <TopicFacet>?TQLGenericTopic</TopicFacet>
+      <ImportFacet>[:RuntimeParams.MacroFacetID:]</ImportFacet>
+      <Process>
+        <Storage Name="[:RuntimeParams.TQLCacheName:]" Type="SqlSff" Comment="[:RuntimeParams.TQLCacheName:] Database SFF Unstructured SQL database"/>
+        <Namespace>
+          <Include>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/models/models.dbm.xml</Include>
+        </Namespace>
+      </Process>
+    </OnActivate>
+    <OnOpen ModifyPipeline="WsServerExtensionArgs"/>
+    <OnRequest>
+      <DoRequest>
+        <Process Return="CMD_NOP">
+          <Message>
+            <Value>
+              <Include>$Request.Message.Value</Include>
+            </Value>
+          </Message>
+        </Process>
+      </DoRequest>
+      <DoResponse>
+        <Process>
+          <Message type="[:RuntimeParams.TQLOutputFormat:]">
+            <Value>
+              <Include>$Response.Message.Value</Include>
+            </Value>
+          </Message>
+        </Process>
+      </DoResponse>
+    </OnRequest>
+  </NewFacetInstance>
+
+  <NewFacetInstance fid="[:RuntimeParams.FacetIDName:]" Name="TQL" Type="SffTqlFacet">
+    <OnActivate>
+      <Include>[:GetProjectModelsMacro:]</Include>
+      <Include>[:InstantiateModelMacro:]</Include>
+      <NewFacetInstance name="tqlwf" type="SffWdlFacet"/>
+      <TopicFacet>?TQLGenericTopic</TopicFacet>
+      <ImportFacet>[:RuntimeParams.MacroFacetID:]</ImportFacet>
+      <Process>
+        <Storage Name="[:RuntimeParams.TQLCacheName:]" Type="SqlSff" Comment="[:RuntimeParams.TQLCacheName:] Database SFF Unstructured SQL database"/>
+        <Namespace>
+          <Include>C:/Users/gs-1157/Desktop/BackUp/Engine/resources/KYAURM73AAAL7KABJRH4WOVY/models/models.dbm.xml</Include>
+        </Namespace>
+      </Process>
+    </OnActivate>
+    <OnOpen ModifyPipeline="HttpServerExtensionArgs"/>
+    <OnRequest>
+      <SetContextData key="projectKey" value="[:$Request.Arguments.x-atomiton-project-key:]"/>
+      <SetContextData key="projectSysId" value="[:$Request.Arguments.x-atomiton-project-id:]"/>
+      <if condition="[:RuntimeParams.ProjectSettings_EnforceKey:]">
+        <then>
+          <if condition="$ContextData/projectKey eq '[:RuntimeParams.ProjectSettings_ProjectKey:]'">
+            <then>
+              <DoRequest>
+                <Process Return="CMD_NOP">
+                  <Message>
+                    <Value>
+                      <Include>$Request.Message.Value</Include>
+                    </Value>
+                  </Message>
+                </Process>
+              </DoRequest>
+            </then>
+            <else>
+              <SetResponse>
+                <Message type="[:RuntimeParams.TQLOutputFormat:]">
+                  <Value>
+                    <Status>Failed</Status>
+                    <Message>Invalid Project Key</Message>
+                  </Value>
+                </Message>
+              </SetResponse>
+            </else>
+          </if>
+        </then>
+        <else>
+          <DoRequest>
+            <Process Return="CMD_NOP">
+              <Message>
+                <Value>
+                  <Include>$Request.Message.Value</Include>
+                </Value>
+              </Message>
+            </Process>
+          </DoRequest>
+        </else>
+      </if>
+      <DoResponse>
+        <Process>
+          <Include>RESTHeaders</Include>
+          <Message type="[:RuntimeParams.TQLOutputFormat:]">
+            <Value>
+              <Include>$Response.Message.Value</Include>
+            </Value>
+          </Message>
+        </Process>
+      </DoResponse>
+    </OnRequest>
+  </NewFacetInstance>
+
+  <GetProjectModelsMacro>
+    <Macro Name="GetProjectModels">
+      <Argument/>
+      <Result>
+        <!-- GetDatamodel -->
+        <DoRequest target="[:RuntimeParams.FacetIDName:]" Disable="CMD_SERVER">
+          <Process Return="CMD_NOP">
+            <Message>
+              <Value>
+                <Query>
+                  <Show>
+                    <Entity inherits="DataModel" not.qname="*.TqlSystem.*"/>
+                  </Show>
+                </Query>
+              </Value>
+            </Message>
+          </Process>
+        </DoRequest>
+        <if condition="$Response.Message.Value/count(Show/Result) gt 0">
+          <then>
+            <JavaScript>
+              <resp>
+                <Include>$Response.Message.Value</Include>
+              </resp>
+              var listmap = ListMap.static.newInstance();
+              var projectModels = listmap.instanceAdd("ProjectModels");
+              var resultList = resp.Show.Result;
+              for each (var result in resultList.iterEntries("DataModel")){
+              var objValue = result.getValue();
+              var qname = objValue.QName;
+              var spaces = qname.split('.');
+              var modeltype = "DataModel";
+              var ctr = 0;
+              addModels(projectModels, spaces, ctr, objValue, modeltype);
+              }
+
+              for each (var result in resultList.iterEntries("ThingModel")){
+              var objValue = result.getValue();
+              var qname = objValue.QName;
+              var spaces = qname.split('.');
+              var modeltype = "ThingModel";
+              var ctr = 0;
+              addModels(projectModels, spaces, ctr, objValue, modeltype);
+              }
+
+              for each (var result in resultList.iterEntries("AppModel")){
+              var objValue = result.getValue();
+              var qname = objValue.QName;
+              var spaces = qname.split('.');
+              var modeltype = "AppModel";
+              var ctr = 0;
+              addModels(projectModels, spaces, ctr, objValue, modeltype);
+              }
+
+              function addModels(map, spaces, ctr, result, modeltype){
+              if(ctr &lt; (spaces.length - 1)){
+              var node = map.instanceGet("Element");
+              for each (var nodeItems in map.iterValues("Element")){
+              if((spaces[ctr]).equals(nodeItems.get("Name"))){
+              node = nodeItems;
+              }
+              }
+              if(null == node.get("Name")){
+              node.put("Name", spaces[ctr]);
+              addModels(node, spaces, ctr+1, result, modeltype);
+              }else if((spaces[ctr]).equals(node.get("Name"))){
+              addModels(node, spaces, ctr+1, result, modeltype);
+              }else{
+              var node = map.instanceAdd("Element");
+              node.put("Name", spaces[ctr]);
+              addModels(node, spaces, ctr+1, result, modeltype);
+              }
+              }else{
+              var models = map.instanceGet(modeltype+"s");
+              models.add(modeltype, result);
+              }
+              }
+
+              <!-- sffLog.info("List map value === "+projectModels); -->
+              sffContext.setContextData("projectModels", projectModels);
+            </JavaScript>
+            <if condition="$ContextData/count(projectModels) gt 0">
+              <then>
+                <DelResponseData key="Message.Value.Show"/>
+                <SetResponseData key="Message.Value.ProjectModels">
+                  <Value>
+                    <Include>$ContextData.projectModels</Include>
+                  </Value>
+                </SetResponseData>
+                <SetResponseData key="Message.Value.Status">
+                  <Value>Success</Value>
+                </SetResponseData>
+              </then>
+              <else>
+                <SetResponseData key="Message.Value.Status">
+                  <Value>Model creation failed</Value>
+                </SetResponseData>
+              </else>
+            </if>
+          </then>
+          <else>
+            <SetResponseData key="Message.Value.Status">
+              <Value>Data models not present</Value>
+            </SetResponseData>
+          </else>
+        </if>
+      </Result>
+    </Macro>
+  </GetProjectModelsMacro>
+  <InstantiateModelMacro>
+    <Macro Name="InstantiateDataModels">
+      <Argument>
+        <ModelName/>
+      </Argument>
+      <Result>
+        <JavaScript>
+          sffLog.info("Inside Get Model Data");
+          var file = new
+          java.io.File("[:RuntimeParams.SpacesLocation:]/[:$Macro.Argument.ModelName:].init.tql.xml");
+          var data = sff.loadTxt(file.getAbsolutePath());
+          if(data ==
+          null){
+          sffLog.info("GetModelData file content is null ");
+          }else{
+          sffLog.info("GetModelData file content is not null ");
+          var deleteQuery="&lt;[:$Macro.Argument.ModelName:]&gt; &lt;SysId ne='' /&gt; &lt;/[:$Macro.Argument.ModelName:]&gt;";
+          sffContext.setContextData("deleteQuery", deleteQuery);
+          sffContext.setContextData("modelData", data);
+          }
+        </JavaScript>
+        <if condition="$ContextData/modelData ne ''">
+          <then>
+            <Log message="Model data is not null == [:$ContextData.deleteQuery:]"/>
+            <DoRequest target="[:RuntimeParams.FacetIDName:]" Disable="CMD_SERVER">
+              <Process Return="CMD_NOP">
+                <Message>
+                  <Value>
+                    <Query>
+                      <DeleteAll>
+                        [:$ContextData.deleteQuery:]
+                      </DeleteAll>
+                    </Query>
+                  </Value>
+                </Message>
+              </Process>
+            </DoRequest>
+            <DoRequest target="[:RuntimeParams.FacetIDName:]" Disable="CMD_SERVER">
+              <Process Return="CMD_NOP">
+                <Message>
+                  <Value>
+                    [:$ContextData.modelData:]
+                  </Value>
+                </Message>
+              </Process>
+            </DoRequest>
+            <if condition="$Response.Message.Value/Save/Status eq 'Success'">
+              <then>
+                <DelResponseData key="Message.Value.DeleteAll"/>
+                <DelResponseData key="Message.Value.Save"/>
+                <SetResponseData key="Message.Value.Status">
+                  <value>Success</value>
+                </SetResponseData>
+              </then>
+              <else>
+                <SetResponseData key="Message.Value.Status">
+                  <value>Model Data reinstantiation failed</value>
+                </SetResponseData>
+              </else>
+            </if>
+          </then>
+          <else>
+            <SetResponseData key="Message.Value.Status">
+              <value>Model Data is not present</value>
+            </SetResponseData>
+          </else>
+        </if>
+      </Result>
+    </Macro>
+  </InstantiateModelMacro>
+
+  
+
+</NewPackage>
+

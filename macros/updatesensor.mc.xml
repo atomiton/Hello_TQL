@@ -1,0 +1,52 @@
+<Macro Name="UpdateTempSensor">
+	<Argument>
+		<TempData />
+	</Argument>
+	<Result>
+		<ExecuteQueryTQL1>
+			<QueryString>
+				<Query>
+					<Find format="version">
+						<TempSensor>
+							<TempSensorID>
+								<Ne />
+							</TempSensorID>
+						</TempSensor>
+					</Find>
+				</Query>
+			</QueryString>
+		</ExecuteQueryTQL1>
+		<ExecuteQueryTQL1>
+			<QueryString>
+				<Query>
+					<Save>
+						<TempSensor>
+							<TempSensorID>
+								[:$Response.Message.Value.Find.Result.TempSensor.TempSensorID:]
+							</TempSensorID>
+							<TempData>
+								<Version>[:$Response.Message.Value.Find.Result.TempSensor.TempData.Version:]
+								</Version>
+								<Value>[:$Macro.Argument.TempData:]</Value>
+							</TempData>
+						</TempSensor>
+					</Save>
+				</Query>
+			</QueryString>
+		</ExecuteQueryTQL1>
+		<Log> ---------- Update sensor response is :-- [:$Response.Message.Value:] ------------</Log>
+		<if Condition="$Response.Message.Value/Save/Status eq 'Success'">
+			<Then>
+				<SetResponseData Key="Message.Value.Status" Value="Success" />
+				<DelResponseData Key="Message.Value.Find" />
+				<DelResponseData Key="Message.Value.Save" />
+			</Then>
+			<else>
+				<SetResponseData Key="Message.Value.Status" Value="Failed" />
+				<SetResponseData Key="Message.Value.Message" Value="Issue while Updating Temp Sensor value." />
+				<DelResponseData Key="Message.Value.Find" />
+				<DelResponseData Key="Message.Value.Save" />
+			</else>
+		</if>
+	</Result>
+</Macro>

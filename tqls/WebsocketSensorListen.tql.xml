@@ -1,0 +1,9 @@
+<Query Storage='TqlSubscription'>
+  <Save>
+    <TqlSubscription Label='SensorSubscription' sid='10'>
+      <Topic>
+        *Atomiton.HelloTQL.TempSensorModel.*
+      </Topic>
+    </TqlSubscription>
+  </Save>
+</Query>

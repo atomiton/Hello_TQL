@@ -1,0 +1,14 @@
+<Namespace Name="Atomiton">
+	<Domain Name="HelloTQL">
+
+		<ThingModel Combines="TempSensorModel" Name="TempSensorFacet">
+			<Sid Name="TempSensorID" />
+		</ThingModel>
+
+		<ThingFacet>
+			<Include>[:RuntimeParams.ThingFacetLocation:]tempFacet.tf.xml
+			</Include>
+		</ThingFacet>
+
+	</Domain>
+</Namespace>

@@ -1,0 +1,51 @@
+<ThingFacet Name="TempSensorFacet">
+  <String Name="SensorName"/>
+  <Boolean Name="Simulated"/>
+  <PERIFConnectionParams Name="ConnParams"/>
+  <String Name="TempData" update="auto" KnownBy="TempReadAction"/>
+  
+  <Action Documentation="Sensor control action details" Name="TempReadAction">
+    <Workflow Limit="1" Live="1" Timeout="-1">
+      <Task Name="Main" while="true">
+        <Event As="ActionArgument" Name="Argument"/>
+
+        <!-- If we read data from simulator we don't need to update known value, so in this case we just update Simulated value so it will not trigger action in 
+          loop -->
+        <Invoke Name="SetOutputDataForSimulator" waitFor="Argument" OnlyIf="[%:[%:@CT:%]Event.Argument.Simulated.Value:%]">
+          <FacetScript>
+            <SetContextData key="OutputData">
+              <Value>
+                <Simulated> [%:Event.Argument.Simulated.Value:%]
+                </Simulated>
+              </Value>
+            </SetContextData>
+          </FacetScript>
+        </Invoke>
+
+        <!-- Read data from sensor -->
+         <Invoke Name="InvokeSerialRead" Get="perif://?Peripheral=[:Event.Argument.ConnParams.Peripheral.value:]&amp;Operation=[:Event.Argument.ConnParams.Operation.value:]&amp;InterfacePort=[:Event.Argument.ConnParams.InterfacePort.value:]&amp;BaudRate=[:Event.Argument.ConnParams.BaudRate.value:]" 
+                 waitFor="Argument"  OnlyIf="[%:[%:@CT:%]Event.Argument/Simulated/Value = 'false':%]"/>
+        
+        <!-- When we read data from sensor update TempData parameter value so it will trigger actioin again to read data from sensor -->
+        <Invoke Name="SetOutputDataForSensor" waitFor="Argument" OnlyIf="[%:[%:@CT:%]Event.Argument/Simulated/Value = 'false':%]">
+          <FacetScript>
+            <SetContextData key="OutputData">
+              <Value>
+                <TempData>
+                  [%:Invoke.InvokeSerialRead.Message.Value/number(substring-before(substring-after("[%:Invoke.InvokeSerialRead.Message.Value.received:%]",'TEMPC:'),'#')):%]
+                </TempData>
+              </Value>
+            </SetContextData>
+          </FacetScript>
+        </Invoke>
+
+        <Output As="ActionResult" Name="Result">
+          <Value>
+            <Include>[:$ContextData.OutputData:]</Include>
+          </Value>
+        </Output>
+
+      </Task>
+    </Workflow>
+  </Action>
+</ThingFacet>
